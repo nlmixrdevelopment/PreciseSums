@@ -10,10 +10,10 @@ Authors@R: c(person("Matthew","Fidler",
       person("NumPy Team", role="cph"),
       person("Python Team", role="cph")
    )
-Description: Most of the time floating point artithmic does
+Description: Most of the time floating point arithmetic does
   approximately the right thing.  When adding sums or having products of
   numbers that greatly differ in magnitude, the floating point
-  arithmitec may be incorrect.  This package implements the Kahan sum,
+  arithmetic may be incorrect.  This package implements the Kahan sum,
   Neumaier sum, pairwise-sum (adapted from NumPy), and arbitrary
   precision sum (adapted from Python's fsum).  In addition, products are
   changed to long double precision for accuracy, or changed into a

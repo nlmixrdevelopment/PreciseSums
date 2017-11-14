@@ -17,13 +17,13 @@ extern "C" {
   double PreciseSums_sum(double* input, int len){
     static double (*fun)(double*, int)=NULL;
     if (fun == NULL) fun = (double(*)(double*, int)) R_GetCCallable("PreciseSums","PreciseSums_sum");
-    reurn fun(input, len);
+    return fun(input, len);
   }
 
   double PreciseSums_prod(double* input, int len){
     static double (*fun)(double*, int)=NULL;
     if (fun == NULL) fun = (double(*)(double*, int)) R_GetCCallable("PreciseSums","PreciseSums_prod");
-    reurn fun(input, len);
+    return fun(input, len);
   }
 
 #if defined(__cplusplus)

@@ -1,0 +1,2 @@
+SOURCES_C = sum.c prod.c init.c
+OBJECTS = $(SOURCES_C:.c=.o)
