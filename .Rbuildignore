@@ -1,0 +1,15 @@
+^\.travis.yml$
+^README(\.md|\.Rmd)$
+^LICENSE$
+^.git.*$
+^\.gitignore$
+^appveyor\.yml$
+^/?.Rhistory
+^/?R/.Rhistory
+^/?src/.Rhistory
+^.*\.pdf$
+^.*\.rtf$
+^/?man-roxygen/.*$
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.travis\.yml$
