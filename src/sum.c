@@ -146,15 +146,16 @@ SEXP _psNeumaierSum(SEXP input){
 
 #define NUM_PARTIALS  32  /* initial partials array size, on stack */
 
-extern double PreciseSums_Python_fsum (double *iterable, int iterable_len){
+extern double PreciseSums_Python_fsum_r(double *iterable, int iterable_len,
+					long double *p, int m){
   // See http://code.activestate.com/recipes/393090-binary-floating-point-summation-accurate-to-full-p/
   // Also https://github.com/python/cpython/blob/a0ce375e10b50f7606cb86b072fed7d8cd574fe7/Modules/mathmodule.c
   // Mostly the same as python's math.fsum
   long double x, y, t;
   long double xsave, special_sum = 0.0, inf_sum = 0.0, sum = 0.0;
   volatile long double hi, yr, lo;
-  int ix, i, j, n = 0, m = NUM_PARTIALS;
-  long double *p = Calloc(NUM_PARTIALS, long double);
+  int ix, i, j, n = 0;//, m = NUM_PARTIALS;
+  //long double *p = Calloc(NUM_PARTIALS, long double);
   // for x in input
   for (ix = 0; ix < iterable_len; ix++){
     x = (long double) iterable[ix];
@@ -205,7 +206,6 @@ extern double PreciseSums_Python_fsum (double *iterable, int iterable_len){
       error("-inf + inf in fsum");
     }
     sum = special_sum;
-    Free(p);
     return sum;
   }
 
@@ -249,8 +249,15 @@ extern double PreciseSums_Python_fsum (double *iterable, int iterable_len){
     }
   }
   sum = hi;
-  Free(p);
   return sum;
+}
+
+extern double PreciseSums_Python_fsum(double *iterable, int iterable_len){
+  long double *p = Calloc(NUM_PARTIALS, long double);
+  int m = NUM_PARTIALS;
+  double ret = PreciseSums_Python_fsum_r(iterable, iterable_len, p, m);
+  Free(p);
+  return ret;
 }
 
 SEXP _psPythonSum(SEXP input){
@@ -273,6 +280,32 @@ extern double PreciseSums_sum (double *input, int n){
     break;
   case 2:
     return PreciseSums_Python_fsum(input, n);
+    break;
+  case 3:
+    return PreciseSums_KahanSum(input, n);
+    break;
+  case 4:
+    return PreciseSums_NeumaierSum(input, n);
+    break;
+  }
+  //PreciseSums_KahanSum;
+  // PreciseSums_NeumaierSum
+  error("Unknown sum type.");
+  return 0;
+}
+
+extern double PreciseSums_sum_r(double *input, int n, 
+				long double *p, int m,
+				int type){
+  switch (type){
+  case 5:
+    return PreciseSums_DoubleSum(input, n);
+    break;
+  case 1:
+    return PreciseSums_pairwise_add_DOUBLE(input, n);
+    break;
+  case 2:
+    return PreciseSums_Python_fsum_r(input, n, p, m);
     break;
   case 3:
     return PreciseSums_KahanSum(input, n);
@@ -320,5 +353,17 @@ extern double PreciseSums_sumV(int n, ...){
   va_end(valist);
   double s = PreciseSums_sum(p, n);
   Free(p);
+  return s;
+}
+
+
+extern double PreciseSums_sumV_r(double *p, int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  for (unsigned int i = 0; i < n; i++){
+    p[i] = va_arg(valist, double);
+  }
+  va_end(valist);
+  double s = PreciseSums_sum(p, n);
   return s;
 }

@@ -56,20 +56,41 @@ extern double PreciseSums_prod_d(double *input, int n){
   return p;
 }
 
-extern double PreciseSums_prod_logify(double *input, int n){
-  double *p = Calloc(n,double);
+extern double PreciseSums_prod_logify_r(double *input, double *p, int n){
   double s = 1.0;
   for (int i = 0; i < n; i++){
     if (input[i] == 0){
-      Free(p);
       return 0.0;
     }
     s = sign(input[i])*s;
     p[i] = PreciseSums_safe_log(fabs(input[i]));
   }
   s = exp(PreciseSums_pairwise_add_DOUBLE(p, n))*s;
-  Free(p);
   return s;
+}
+
+extern double PreciseSums_prod_logify(double *input, int n){
+  double *p = Calloc(n,double);
+  double ret= PreciseSums_prod_logify_r(input, p, n);
+  Free(p);
+  return ret;
+}
+
+
+
+
+extern double PreciseSums_prod_r(double *input, double *p, int n, int type){
+  switch (type){
+  case 1: // long double multiply, then convert back.
+    return PreciseSums_prod_ld(input, n);
+    break;
+  case 2: // simple double multiply
+    return PreciseSums_prod_d(input, n);
+    break;
+  case 3: // logify
+    return PreciseSums_prod_logify_r(input, p, n);
+  }
+  return 0.0;
 }
 
 extern double PreciseSums_prod(double *input, int n){
@@ -107,6 +128,17 @@ extern double PreciseSums_prodV(int n, ...){
   va_end(valist);
   double s = PreciseSums_prod(p, n);
   Free(p);
+  return s;
+}
+
+extern double PreciseSums_prodV_r(double *p, int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  for (int i = 0; i < n; i++){
+    p[i] = va_arg(valist, double);
+  }
+  va_end(valist);
+  double s = PreciseSums_prod(p, n);
   return s;
 }
 
