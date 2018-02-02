@@ -190,19 +190,21 @@ extern double PreciseSums_Python_fsum_r(double *iterable, int iterable_len,
         /* reset partials */
         n = 0;
       } else {
-        if (n >= m){
+        if (m > 0 && n >= m){
           //&& _fsum_realloc(&p, n, ps, &m)
           // Doubles the size of array.
           m += m;
           p = Realloc(p, m, long double);
-        }
+        } else if (m < 0 && n >= -m){
+	  error("The size of the saved partials is too small to calculate the sum.");
+	}
         p[n++] = x;
       }
     }
   }
   if (special_sum != 0.0) {
     if (ISNAN(inf_sum)){
-      Free(p);
+      if (m < 0) Free(p);
       error("-inf + inf in fsum");
     }
     sum = special_sum;
@@ -225,7 +227,7 @@ extern double PreciseSums_Python_fsum_r(double *iterable, int iterable_len,
         }
         Rprintf("Assertion Error:\n");
         Rprintf("fabs(y) >= fabs(x) or %f >= %f\n",fabs(y),fabs(x));
-        Free(p);
+        if (m < 0) Free(p);
         error("Error in parital sums.");
       }
       hi = x + y;
