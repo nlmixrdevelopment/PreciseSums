@@ -96,13 +96,13 @@ SEXP _psPairwiseSum(SEXP input){
 }
 
 extern double PreciseSums_KahanSum(double *input, int len){
-  volatile long double sum = 0.0;
-  volatile long double y;
-  volatile long double t, c = 0.0; // A running compensation for lost low-order bits.
+  volatile double sum = 0.0;
+  volatile double y;
+  volatile double t, c = 0.0; // A running compensation for lost low-order bits.
   int i;
 
   for (i = 0; i < len; i++){
-    y = (long double)input[i] - c; 
+    y = (double)input[i] - c; 
     t = sum + y;
     c = (t - sum) - y;       // (t - sum) cancels the high-order part of y; subtracting y recovers negative (low part of y)
     sum = t;                 // Algebraically, c should always be zero. Beware overly-aggressive optimizing compilers!
@@ -120,15 +120,15 @@ SEXP _psKahanSum(SEXP input){
 }
 
 extern double PreciseSums_NeumaierSum(double *input, int len){
-  long double sum = input[0];
-  volatile long double t,  c = 0.0; // A running compensation for lost low-order bits.
+  double sum = input[0];
+  volatile double t,  c = 0.0; // A running compensation for lost low-order bits.
   int i;
   for (i = 1; i < len; i++){
-    t = sum + (long double)input[i];
-    if (fabsl(sum) >= fabsl((long double)input[i])){
-      c += (sum - t) + (long double)input[i]; // If sum is bigger, low-order digits of input[i] are lost.
+    t = sum + (double)input[i];
+    if (fabsl(sum) >= fabsl((double)input[i])){
+      c += (sum - t) + (double)input[i]; // If sum is bigger, low-order digits of input[i] are lost.
     } else {
-      c += ((long double)input[i] - t) + sum; // Else low-order digits of sum are lost
+      c += ((double)input[i] - t) + sum; // Else low-order digits of sum are lost
     }
     sum = t;
   }
@@ -146,19 +146,18 @@ SEXP _psNeumaierSum(SEXP input){
 
 #define NUM_PARTIALS  32  /* initial partials array size, on stack */
 
-extern double PreciseSums_Python_fsum_r(double *iterable, int iterable_len,
-					long double *p, int m){
+extern double PreciseSums_Python_fsum_r(double *iterable, int iterable_len, double *p, int m){
   // See http://code.activestate.com/recipes/393090-binary-floating-point-summation-accurate-to-full-p/
   // Also https://github.com/python/cpython/blob/a0ce375e10b50f7606cb86b072fed7d8cd574fe7/Modules/mathmodule.c
   // Mostly the same as python's math.fsum
-  long double x, y, t;
-  long double xsave, special_sum = 0.0, inf_sum = 0.0, sum = 0.0;
-  volatile long double hi, yr, lo;
+  double x, y, t;
+  double xsave, special_sum = 0.0, inf_sum = 0.0, sum = 0.0;
+  volatile double hi, yr, lo;
   int ix, i, j, n = 0;//, m = NUM_PARTIALS;
-  //long double *p = Calloc(NUM_PARTIALS, long double);
+  //double *p = Calloc(NUM_PARTIALS, double);
   // for x in input
   for (ix = 0; ix < iterable_len; ix++){
-    x = (long double) iterable[ix];
+    x = (double) iterable[ix];
     xsave = x;
     for (i = j = 0; j < n; j++) {
       y = p[j];
@@ -181,7 +180,7 @@ extern double PreciseSums_Python_fsum_r(double *iterable, int iterable_len,
            as a result of a nan or inf in the
            summands */
         if (R_FINITE(xsave) || ISNAN(xsave)) {
-          Free(p);
+	  if (m > 0) Free(p);
           error("intermediate overflow in fsum");
         } else {
           inf_sum += xsave;
@@ -194,7 +193,7 @@ extern double PreciseSums_Python_fsum_r(double *iterable, int iterable_len,
           //&& _fsum_realloc(&p, n, ps, &m)
           // Doubles the size of array.
           m += m;
-          p = Realloc(p, m, long double);
+          p = Realloc(p, m, double);
         } else if (m < 0 && n >= -m){
 	  error("The size of the saved partials is too small to calculate the sum.");
 	}
@@ -204,7 +203,7 @@ extern double PreciseSums_Python_fsum_r(double *iterable, int iterable_len,
   }
   if (special_sum != 0.0) {
     if (ISNAN(inf_sum)){
-      if (m < 0) Free(p);
+      if (m > 0) Free(p);
       error("-inf + inf in fsum");
     }
     sum = special_sum;
@@ -227,7 +226,7 @@ extern double PreciseSums_Python_fsum_r(double *iterable, int iterable_len,
         }
         Rprintf("Assertion Error:\n");
         Rprintf("fabs(y) >= fabs(x) or %f >= %f\n",fabs(y),fabs(x));
-        if (m < 0) Free(p);
+        if (m > 0) Free(p);
         error("Error in parital sums.");
       }
       hi = x + y;
@@ -255,9 +254,9 @@ extern double PreciseSums_Python_fsum_r(double *iterable, int iterable_len,
 }
 
 extern double PreciseSums_Python_fsum(double *iterable, int iterable_len){
-  long double *p = Calloc(NUM_PARTIALS, long double);
+  double *p = Calloc(NUM_PARTIALS, double);
   int m = NUM_PARTIALS;
-  double ret = PreciseSums_Python_fsum_r(iterable, iterable_len, p, m);
+  double ret = PreciseSums_Python_fsum_r(&iterable[0], iterable_len, p, m);
   Free(p);
   return ret;
 }
@@ -296,9 +295,7 @@ extern double PreciseSums_sum (double *input, int n){
   return 0;
 }
 
-extern double PreciseSums_sum_r(double *input, int n, 
-				long double *p, int m,
-				int type){
+extern double PreciseSums_sum_r(double *input, int n, const double *p, int m, int type){
   switch (type){
   case 5:
     return PreciseSums_DoubleSum(input, n);

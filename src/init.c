@@ -18,12 +18,15 @@ double PreciseSums_sum(double *input, int len);
 double PreciseSums_prod(double *input, int len);
 
 double PreciseSums_prod_r(double *input, double *p, int n, int type);
-double PreciseSums_sum_r(double *input, int n, long double *p, int m, int type);
+double PreciseSums_sum_r(double *input, int n, double *p, int m, int type);
 
 static R_NativePrimitiveArgType PreciseSums_Sum_t[] = {
   REALSXP, INTSXP
 };
 
+
+int PreciseSums_sum_get();
+int PreciseSums_prod_get();
 
 void R_init_PreciseSums(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
@@ -43,6 +46,8 @@ void R_init_PreciseSums(DllInfo *info){
 
   R_RegisterCCallable("PreciseSums","PreciseSums_prod_r", (DL_FUNC) PreciseSums_prod_r);
   R_RegisterCCallable("PreciseSums","PreciseSums_sum_r",  (DL_FUNC) PreciseSums_sum_r);
+  R_RegisterCCallable("PreciseSums", "PreciseSums_prod_get", (DL_FUNC) PreciseSums_prod_get);
+  R_RegisterCCallable("PreciseSums", "PreciseSums_sum_get", (DL_FUNC) PreciseSums_sum_get);
   
   static const R_CMethodDef cMethods[] = {
     {"PreciseSums_sum", (DL_FUNC) &PreciseSums_sum, 2, PreciseSums_Sum_t},
