@@ -295,7 +295,7 @@ extern double PreciseSums_sum (double *input, int n){
   return 0;
 }
 
-extern double PreciseSums_sum_r(double *input, int n, const double *p, int m, int type){
+extern double PreciseSums_sum_r(double *input, int n, double *p, int m, int type){
   switch (type){
   case 5:
     return PreciseSums_DoubleSum(input, n);
