@@ -1,6 +1,6 @@
 Package: PreciseSums
 Title: Accurate Floating Point Sums and Products
-Version: 0.3
+Version: 0.4
 Authors@R: c(person("Matthew","Fidler",
       role = c("aut","cre","cph"), email = "matthew.fidler@gmail.com"),
       person("Raymond","Hettinger",role=c("cph","aut")),
@@ -26,5 +26,5 @@ Depends: R (>= 3.2)
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.0.1
+RoxygenNote: 7.1.1
 Suggests: testthat

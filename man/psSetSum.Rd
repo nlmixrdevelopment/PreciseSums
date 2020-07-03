@@ -4,7 +4,7 @@
 \alias{psSetSum}
 \title{Choose the type of sums to use for PreciceSums.}
 \usage{
-psSetSum(type = c("pairwise", "fsum", "kahan", "neumaier", "c"))
+psSetSum(type = c("pairwise", "fsum", "kahan", "neumaier", "klein", "c"))
 }
 \arguments{
 \item{type}{Sum type to use for \code{psSum} and \code{sum()} in
@@ -17,6 +17,8 @@ psSetSum(type = c("pairwise", "fsum", "kahan", "neumaier", "c"))
 \code{kahan} uses kahan correction
 
 \code{neumaier} uses Neumaier correction
+
+\code{klein} uses Klien correction
 
 \code{c} uses no correction, bud default/native summing}
 }

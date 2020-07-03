@@ -114,14 +114,16 @@ psSum <- function(numbers) {
 ##'
 ##' \code{neumaier} uses Neumaier correction
 ##'
+##' \code{klein} uses Klien correction
+##'
 ##' \code{c} uses no correction, bud default/native summing
 ##'
 ##' @return nothing
 ##' @author Matthew L. Fidler
 ##' @export
 ##' @useDynLib PreciseSums, .registration=TRUE
-psSetSum <- function(type=c("pairwise", "fsum", "kahan", "neumaier", "c")){
-    i <- which(type == c("pairwise", "fsum", "kahan", "neumaier", "c"))
+psSetSum <- function(type=c("pairwise", "fsum", "kahan", "neumaier", "klein", "c")){
+    i <- which(type == c("pairwise", "fsum", "kahan", "neumaier", "c", "klein"))
     invisible(.Call(`_psSetSum`, as.integer(i)))
 }
 

@@ -135,6 +135,29 @@ extern double PreciseSums_NeumaierSum(double *input, int len){
   return sum + c; // Correction only applied once in the very end
 }
 
+extern double PreciseSums_KleinSum(double *input, int len){
+  // https://en.wikipedia.org/wiki/Kahan_summation_algorithm
+  volatile double s = 0.0, c=0.0,cc=0.0,  cs = 0.0, ccs= 0.0, t;
+  for (int i = 0;i < len; ++i){
+    t = s+input[i];
+    if (fabs(s) >= fabs(input[i])){
+      c = (s - t) + input[i];
+    } else {
+      c = (input[i] - t) + s;
+    }
+    s = t;
+    t = cs + c;
+    if(fabs(cs) >= fabs(c)){
+      cc = (cs - t) + c;
+    } else {
+      cc = (c - t) + cs;
+    }
+    cs = t;
+    ccs = ccs + cc;
+  }
+  return s + cs + ccs;
+}
+
 SEXP _psNeumaierSum(SEXP input){
   int len = length(input);
   double *dinput = REAL(input);
@@ -181,7 +204,8 @@ extern double PreciseSums_Python_fsum_r(double *iterable, int iterable_len, doub
            summands */
         if (R_FINITE(xsave) || ISNAN(xsave)) {
 	  if (m > 0) Free(p);
-          error("intermediate overflow in fsum");
+	  return PreciseSums_KleinSum(iterable, iterable_len);
+          /* error("intermediate overflow in fsum"); */
         } else {
           inf_sum += xsave;
         }
@@ -195,7 +219,9 @@ extern double PreciseSums_Python_fsum_r(double *iterable, int iterable_len, doub
           m += m;
           p = Realloc(p, m, double);
         } else if (m < 0 && n >= -m){
-	  error("The size of the saved partials is too small to calculate the sum.");
+	  /* if (m > 0) Free(p); */
+	  return PreciseSums_KleinSum(iterable, iterable_len);
+	  /* error("The size of the saved partials is too small to calculate the sum."); */
 	}
         p[n++] = x;
       }
@@ -220,14 +246,16 @@ extern double PreciseSums_Python_fsum_r(double *iterable, int iterable_len, doub
       x = hi;
       y = p[--n];
       if (fabs(y) >= fabs(x)){
-        Rprintf("Partial Sums:\n");
-        for (i = 0; i < j; i++){
-          Rprintf("p[%d] = %f\n",i,p[i]);
-        }
-        Rprintf("Assertion Error:\n");
-        Rprintf("fabs(y) >= fabs(x) or %f >= %f\n",fabs(y),fabs(x));
-        if (m > 0) Free(p);
-        error("Error in parital sums.");
+	if (m > 0) Free(p);
+	return PreciseSums_KleinSum(iterable, iterable_len);
+        /* Rprintf("Partial Sums:\n"); */
+        /* for (i = 0; i < j; i++){ */
+        /*   Rprintf("p[%d] = %f\n",i,p[i]); */
+        /* } */
+        /* Rprintf("Assertion Error:\n"); */
+        /* Rprintf("fabs(y) >= fabs(x) or %f >= %f\n",fabs(y),fabs(x)); */
+        /* if (m > 0) Free(p); */
+        /* error("Error in parital sums."); */
       }
       hi = x + y;
       yr = hi - x;
@@ -272,7 +300,10 @@ SEXP _psPythonSum(SEXP input){
 
 int PreciseSums_sum_type = 1;
 extern double PreciseSums_sum (double *input, int n){
+  REprintf("PreciseSums_sum: %d\n", PreciseSums_sum_type);
   switch (PreciseSums_sum_type){
+  case 6:
+    return PreciseSums_KleinSum(input, n);
   case 5:
     return PreciseSums_DoubleSum(input, n);
     break;
@@ -297,6 +328,8 @@ extern double PreciseSums_sum (double *input, int n){
 
 extern double PreciseSums_sum_r(double *input, int n, double *p, int m, int type){
   switch (type){
+  case 6:
+    return PreciseSums_KleinSum(input, n);
   case 5:
     return PreciseSums_DoubleSum(input, n);
     break;
