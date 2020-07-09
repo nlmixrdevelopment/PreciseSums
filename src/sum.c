@@ -300,7 +300,6 @@ SEXP _psPythonSum(SEXP input){
 
 int PreciseSums_sum_type = 1;
 extern double PreciseSums_sum (double *input, int n){
-  REprintf("PreciseSums_sum: %d\n", PreciseSums_sum_type);
   switch (PreciseSums_sum_type){
   case 6:
     return PreciseSums_KleinSum(input, n);
